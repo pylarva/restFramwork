@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'restful01',
 ]
 
@@ -55,8 +56,7 @@ ROOT_URLCONF = 'restful.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -120,3 +120,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# RestFramework 全局认证设置
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ['restful.utils.auth.MyAuthentication', ],
+    # 默认匿名用户名称
+    'UNAUTHENTICATED_USER': None,
+    'UNAUTHENTICATED_TOKEN': None
+}

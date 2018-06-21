@@ -1,5 +1,9 @@
 import json
+import time
+import hashlib
+from restful01 import models
 from django.views import View
+from django.http import JsonResponse
 from django.shortcuts import render, HttpResponse
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.utils.decorators import method_decorator
@@ -22,21 +26,58 @@ class MyBaseView(object):
         return ret
 
 
-class MyAuthentication(object):
+def UserMD5(username):
+    """
+    加密用户字符串
+    :param username:
+    :return:
+    """
+    c_time = str(time.time())
+    m = hashlib.md5(bytes(username, encoding='utf-8'))
+    m.update(bytes(c_time, encoding='utf-8'))
+    return m.hexdigest()
 
-    def authenticate(self, request):
-        token = request._request.GET.get('token')
-        if not token:
-            raise exceptions.AuthenticationFailed('用户认证失败...')
-        return ('Success', None)
 
-    def authenticate_header(self, v):
-        pass
+class AuthView(APIView):
+    """
+    API用户认证
+    """
+
+    def get(self, request, *args, **kwargs):
+        # self.dispatch
+        # MyAuthentication 认证返回两个对象user和auth (未设置返回对象则默认为匿名用户)
+        # request.user -> token_obj.user
+        # request.auth -> token_obj
+        print(request.user)
+        ret = {
+            'code': 1000,
+            'msg': 'success'
+        }
+        return JsonResponse(ret)
+
+    def post(self, request, *args, **kwargs):
+        ret = {
+            'code': 1000,
+            'msg': None
+        }
+
+        user = request._request.POST.get('username')
+        pwd = request._request.POST.get('pwd')
+        obj = models.UsersInfo.objects.filter(username=user, pwd=pwd).first()
+        if not obj:
+            ret['code'] = 1001
+            ret['msg'] = 'username or password error...'
+            return JsonResponse(ret)
+
+        token = UserMD5(user)
+        models.UsersToken.objects.update_or_create(user=obj, defaults={'token': token})
+        ret['token'] = token
+        return JsonResponse(ret)
 
 
 class StudentsView(APIView):
-    # rest framework 自定义用户认证
-    authentication_classes = [MyAuthentication, ]
+    # rest framework 自定义用户认证(空即不参与全局认证)
+    authentication_classes = []
 
     # 通过反射实现CBV
     # def dispatch(self, request, *args, **kwargs):
@@ -46,10 +87,10 @@ class StudentsView(APIView):
 
     def get(self, request, *args, **kwargs):
         ret = {
-            'code': 10000,
+            'code': 1000,
             'msg': 'xxx'
         }
-        return HttpResponse(json.dumps(ret))
+        return JsonResponse(ret)
 
     def post(self, request, *args, **kwargs):
         return HttpResponse('POST')

@@ -123,8 +123,19 @@ STATIC_URL = '/static/'
 
 # RestFramework 全局认证设置
 REST_FRAMEWORK = {
+    # 认证模块
     'DEFAULT_AUTHENTICATION_CLASSES': ['restful.utils.auth.MyAuthentication', ],
     # 默认匿名用户名称
     'UNAUTHENTICATED_USER': None,
-    'UNAUTHENTICATED_TOKEN': None
+    'UNAUTHENTICATED_TOKEN': None,
+    # 权限模块
+    'DEFAULT_PERMISSION_CLASSES': ['restful.utils.auth.Permission'],
+    # 访问频率
+    # 'DEFAULT_THROTTLE_CLASSES': ['restful.utils.auth.VisitThrottle'],
+    'DEFAULT_THROTTLE_CLASSES': ['restful.utils.auth.VisitThrottles'],
+    'DEFAULT_THROTTLE_RATES': {'SP': '3/m'},
+    # 版本
+    'DEFAULT_VERSION': 'v1',
+    'ALLOWED_VERSIONS': ['v1', 'v2'],
+    'VERSION_PARAM': 'version'
 }

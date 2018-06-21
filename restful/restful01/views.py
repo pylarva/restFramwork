@@ -11,6 +11,9 @@ from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework import exceptions
 
+from rest_framework.versioning import BaseVersioning
+from rest_framework.versioning import QueryParameterVersioning
+
 
 @csrf_exempt
 def users(request):
@@ -123,3 +126,15 @@ class TeachersView(View):
 
     def delete(self, request, *args, **kwargs):
         return HttpResponse('DELETE')
+
+
+class UsersView(APIView):
+    # 版本控制类
+    versioning_class = QueryParameterVersioning
+
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        print(request.version)
+        return HttpResponse('UsersView..')

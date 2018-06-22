@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework import exceptions
 
 from rest_framework.versioning import BaseVersioning
-from rest_framework.versioning import QueryParameterVersioning
+from rest_framework.versioning import QueryParameterVersioning, URLPathVersioning
 
 
 @csrf_exempt
@@ -130,7 +130,11 @@ class TeachersView(View):
 
 class UsersView(APIView):
     # 版本控制类
-    versioning_class = QueryParameterVersioning
+    # URL地址传参版本方式一 如http://127.0.0.1:8000/user_view/?version=v2
+    # versioning_class = QueryParameterVersioning
+
+    # URL地址传参版本方式二 如http://127.0.0.1:8000/v2/users/
+    # versioning_class = URLPathVersioning
 
     authentication_classes = []
     permission_classes = []
@@ -138,3 +142,50 @@ class UsersView(APIView):
     def get(self, request, *args, **kwargs):
         print(request.version)
         return HttpResponse('UsersView..')
+
+
+from restful01 import models
+from rest_framework.request import Request
+from rest_framework.parsers import JSONParser, FormParser
+from rest_framework import serializers
+
+
+class RolesSerializer(serializers.Serializer):
+    """
+    序列化指定字段
+    """
+    id = serializers.IntegerField()
+    username = serializers.CharField()
+
+
+class ParserView(APIView):
+    """
+    允许用户发送JSON数据
+        a. content-type: application/json
+        b. {'name': 'admin', age='22' }
+    """
+    authentication_classes = []
+    permission_classes = []
+    parser_classes = [JSONParser, FormParser]
+
+    def get(self, request, *args, **kwargs):
+        # 方式一
+        # ret = models.UsersInfo.objects.filter().all().values()
+        # ret = list(ret)
+        # ret = json.dumps(ret, ensure_ascii=False)
+
+        # 方式二
+        ret = models.UsersInfo.objects.filter().all()
+        # 单个Queryset对象时 many=False
+        ser = RolesSerializer(instance=ret, many=True)
+        # ser.data此时已经是转换完成的结果 dumps是为了页面展示
+        ret = json.dumps(ser.data, ensure_ascii=False)
+        return HttpResponse(ret)
+
+    def post(self, request, *args, **kwargs):
+        # 1 获取用户请求
+        # 2 获取用户请求体
+        # 3 parser_classes 对请求头匹配
+        # 4 Request.data 触发
+        print(request.data)
+        return HttpResponse('parser')

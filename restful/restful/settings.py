@@ -135,6 +135,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': ['restful.utils.auth.VisitThrottles'],
     'DEFAULT_THROTTLE_RATES': {'SP': '3/m'},
     # 版本
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
     'DEFAULT_VERSION': 'v1',
     'ALLOWED_VERSIONS': ['v1', 'v2'],
     'VERSION_PARAM': 'version'

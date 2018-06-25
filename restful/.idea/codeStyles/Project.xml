@@ -1,0 +1,13 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <HTMLCodeStyleSettings>
+      <option name="HTML_KEEP_WHITESPACES" value="true" />
+    </HTMLCodeStyleSettings>
+    <MarkdownNavigatorCodeStyleSettings>
+      <option name="SMART_ENTER_ADD_LIST_ITEM" value="false" />
+      <option name="SMART_ENTER_REMOVE_LIST_ITEM" value="false" />
+      <option name="SMART_BACKSPACE_LIST_ITEM" value="false" />
+      <option name="RIGHT_MARGIN" value="-1" />
+    </MarkdownNavigatorCodeStyleSettings>
+  </code_scheme>
+</component>

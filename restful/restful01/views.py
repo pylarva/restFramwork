@@ -155,11 +155,47 @@ class RolesSerializer(serializers.Serializer):
     序列化指定字段
     """
     id = serializers.IntegerField()
+    user_type = serializers.CharField(source="get_user_type_display")
     username = serializers.CharField()
+    group = serializers.CharField(source='group.title')
+    rls = serializers.SerializerMethodField()
+
+    def get_rls(self, row):
+        """ 取数据库ManyToManyField字段 """
+        role_obj_list = row.role.all()
+        ret = []
+        for item in role_obj_list:
+            ret.append({'id': item.id, 'title': item.title})
+        return ret
+
+
+class BRolesSerializer(serializers.ModelSerializer):
+    """
+    同serializers.Serializer简化字段编写
+    """
+    user_type = serializers.CharField(source="get_user_type_display")
+
+    class Meta:
+        model = models.UsersInfo
+        # fields = ['id', 'username', 'ooo']
+        fields = "__all__"
+        depth = 1
+
+
+class CRolesSerializer(serializers.ModelSerializer):
+    """
+    同serializers.Serializer JSON中生成带链接的反向URL
+    """
+    group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='pk')
+
+    class Meta:
+        model = models.UsersInfo
+        fields = ['id', 'username', 'group', 'role']
 
 
 class ParserView(APIView):
     """
+    6 序列化
     允许用户发送JSON数据
         a. content-type: application/json
         b. {'name': 'admin', age='22' }
@@ -177,7 +213,9 @@ class ParserView(APIView):
         # 方式二
         ret = models.UsersInfo.objects.filter().all()
         # 单个Queryset对象时 many=False
-        ser = RolesSerializer(instance=ret, many=True)
+        # ser = RolesSerializer(instance=ret, many=True)
+
+        ser = CRolesSerializer(instance=ret, many=True, context={'request': request})
         # ser.data此时已经是转换完成的结果 dumps是为了页面展示
         ret = json.dumps(ser.data, ensure_ascii=False)
         return HttpResponse(ret)
@@ -189,3 +227,95 @@ class ParserView(APIView):
         # 4 Request.data 触发
         print(request.data)
         return HttpResponse('parser')
+
+
+class GRolesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Group
+        fields = "__all__"
+
+
+class GroupView(APIView):
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        group_obj = models.Group.objects.filter(id=pk).first()
+        ser = GRolesSerializer(instance=group_obj, many=False)
+        ret = json.dumps(ser.data, ensure_ascii=False)
+        return HttpResponse(ret)
+
+
+from restful.utils.pager import PagerSerializer
+# API渲染
+from rest_framework.response import Response
+# page分页
+from rest_framework.pagination import PageNumberPagination
+# offset分页
+from rest_framework.pagination import LimitOffsetPagination
+# 加密分页
+from rest_framework.pagination import CursorPagination
+
+
+class MyPageNumberPagination(PageNumberPagination):
+    """ 自定义分页(?page=1) """
+    page_size = 2
+    page_query_param = 'page'
+    page_size_query_param = 'size'
+
+    max_page_size = 5
+
+
+class MyLimitOffsetPagination(LimitOffsetPagination):
+    """ 自定义位移分页(http://127.0.0.1:8000/v1/pager1/?offset=0&limit=3) """
+    default_limit = 2
+    limit_query_param = 'limit'
+    offset_query_param = 'offset'
+    max_limit = 5
+
+
+class MyCursorPagination(CursorPagination):
+    """ 加密分页(http://127.0.0.1:8000/v1/pager1/?cursor=cD0y) """
+    cursor_query_param = 'cursor'
+    page_size = 2
+    ordering = 'id'
+
+
+class PapersView(APIView):
+    authentication_classes = []
+    permission_classes = []
+    parser_classes = [JSONParser, FormParser]
+
+    def get(self, request, *args, **kwargs):
+        roles = models.Roles.objects.all()
+
+        # 创建分页对象
+        # pg = MyPageNumberPagination()
+        # pg = MyLimitOffsetPagination()
+        pg = MyCursorPagination()
+
+        # 在数据库中获取分页的对象
+        pager_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
+        print(pager_roles)
+
+        # 对数据进行序列化
+        ser = PagerSerializer(instance=pager_roles, many=True)
+        # ser = PagerSerializer(instance=roles, many=True)
+
+        # return Response(ser.data)
+        # 更多respoonse 自动上页 下页
+        return pg.get_paginated_response(ser.data)
+
+
+# 高级视图实现增删改查
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.mixins import ListModelMixin, CreateModelMixin
+
+
+class View1View(ModelViewSet):
+    authentication_classes = []
+    permission_classes = []
+    parser_classes = [JSONParser, FormParser]
+
+    queryset = models.Roles.objects.all()
+    serializer_class = PagerSerializer
+    pagination_class = PageNumberPagination

@@ -19,5 +19,6 @@ urlpatterns = [
     #                                                                         'delete': 'destroy',
     #                                                                         'put': 'update',
     #                                                                         'patch': 'partial_update'})),
-    url(r'^(?P<version>[v1|v2]+)/', include(router.urls))
+    url(r'^(?P<version>[v1|v2]+)/', include(router.urls)),
+    url(r'test/', views.test)
 ]

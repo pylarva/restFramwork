@@ -319,3 +319,39 @@ class View1View(ModelViewSet):
     queryset = models.Roles.objects.all()
     serializer_class = PagerSerializer
     pagination_class = PageNumberPagination
+
+
+###############  Django contenttypes ##############
+
+from django.shortcuts import render,HttpResponse
+
+
+def test(request):
+
+    # 1. 为普通课“linux课程”添加一个价格策略：一个月 10块
+    # obj1 = models.Course.objects.filter(title='linux课程').first()
+    # models.PricePolicy.objects.create(price=10, period=30, content_object=obj1)
+
+    # obj2 = models.Course.objects.filter(title='linux课程').first()
+    # models.PricePolicy.objects.create(price=15, period=60, content_object=obj2)
+    #
+    # obj3 = models.Course.objects.filter(title='linux课程').first()
+    # models.PricePolicy.objects.create(price=20, period=90, content_object=obj3)
+
+    # 2. 为中级课“shell课程”添加一个价格策略：一个月 19
+    # obj1 = models.DegreeCourse.objects.filter(title='shell课程').first()
+    # models.PricePolicy.objects.create(price=19, period=30, content_object=obj1)
+    #
+    # obj2 = models.DegreeCourse.objects.filter(title='shell课程').first()
+    # models.PricePolicy.objects.create(price=29, period=60, content_object=obj2)
+    #
+    # obj3 = models.DegreeCourse.objects.filter(title='shell课程').first()
+    # models.PricePolicy.objects.create(price=35, period=90, content_object=obj3)
+
+    # 3. 根据课程ID获取课程, 并获取该课程的所有价格策略
+    # course = models.Course.objects.filter(id=1).first()
+    # price_policys = course.price_policy_list.all()
+    # for item in price_policys:
+    #     print(item.id, item.price, item.period)
+
+    return HttpResponse('...')
